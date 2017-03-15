@@ -1,0 +1,11 @@
+clientId,ClientPhoneNum,clientLocationCode,clientMessage,clientMessageTime,messageViewedAtTime,clientMessageType
+nsC1,xxxxxxxxxx,A,Help,03/2/17 22:56,,
+nsC2,xxxxxxxxxx,A,Help,03/1/17 13:45,,
+nsC3,xxxxxxxxxx,B,OK,03/5/17 23:20,,
+nsC4,xxxxxxxxxx,C,OK,03/7/17 10:56,,
+nsC5,xxxxxxxxxx,D,OK,03/9/17 11:56,,
+nsC6,xxxxxxxxxx,B,Help,03/12/17 7:35,03/19/17 20:55,highRisk
+nsC7,xxxxxxxxxx,A,help,03/15/17 5:53,03/19/17 20:55,highRisk
+nsC8,xxxxxxxxxx,A,h,03/16/17 12:56,03/19/17 20:55,highRisk
+nsC9,xxxxxxxxxx,A,ok,03/18/17 22:56,03/19/17 20:55,lowRisk
+nsC10,xxxxxxxxxx,A,ok,03/19/17 20:51,03/19/17 20:55,lowRisk
