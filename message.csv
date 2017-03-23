@@ -1,0 +1,20 @@
+phone_number,message_body,sent_on,processed_on,message_type
+xxxxxxxxx1,OMW,03/2/17 22:58,,
+xxxxxxxxx2,OMW,03/1/17 13:47,,
+xxxxxxxxx3,noShow,03/5/17 23:21,,
+xxxxxxxxx4,noShow,03/7/17 10:57,,
+xxxxxxxxx6,noShow,03/9/17 11:58,,
+xxxxxxxxx7,OMW,03/12/17 7:38,03/19/17 20:55,
+xxxxxxxxx8,noShow,03/15/17 5:58,03/19/17 20:55,
+xxxxxxxxx9,noShow,03/16/17 12:57,03/19/17 20:55,
+xxxxxxxx10,OMW,03/18/17 22:58,03/19/17 20:55,
+xxxxxxxx20,Help,03/2/17 22:56,,
+xxxxxxxx11,Help,03/1/17 13:45,,
+xxxxxxxx12,OK,03/5/17 23:20,,
+xxxxxxxx13,OK,03/7/17 10:56,,
+xxxxxxxx14,OK,03/9/17 11:56,,
+xxxxxxxx15,Help,03/12/17 7:35,03/19/17 20:55,highRisk
+xxxxxxxx16,help,03/15/17 5:53,03/19/17 20:55,highRisk
+xxxxxxxx17,h,03/16/17 12:56,03/19/17 20:55,highRisk
+xxxxxxxx18,ok,03/18/17 22:56,03/19/17 20:55,lowRisk
+xxxxxxxx19,ok,03/19/17 20:51,03/19/17 20:55,lowRisk

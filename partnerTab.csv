@@ -1,4 +1,4 @@
-partnerId,partnerPhoneNum,partnerMessage,partnerMessageTime,messageViewedAtTime
+partner_id,phone_number,message_body,sent_on,processed_on
 nsP1,xxxxxxxxxx,OMW,03/2/17 22:58,
 nsP2,xxxxxxxxxx,OMW,03/1/17 13:47,
 nsP3,xxxxxxxxxx,noShow,03/5/17 23:21,
