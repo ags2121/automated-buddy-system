@@ -13,7 +13,7 @@ def seed_db():
 		db=db_config['database'])
 	cur = conn.cursor()
 
-	with open('seed_db.sql', 'r') as queryfile:
+	with open('create_tables.sql', 'r') as queryfile:
 		queries=queryfile.read().split(';')
 
 	[cur.execute(query) for query in queries if query != '\n']
@@ -32,4 +32,4 @@ def seed_db():
 	insert(messages, 'message')
 	conn.commit()
 	cur.close()
-	
+
