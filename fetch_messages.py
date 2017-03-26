@@ -1,20 +1,8 @@
-from twilio.rest import TwilioRestClient
-import MySQLdb
+import util
 import csv
-import yaml
-import pprint 
+
+import pprint
 pp = pprint.PrettyPrinter(indent=4)
-
-def get_twilio_client(config):
-	return TwilioRestClient(config['account_sid'], config['auth_token'])
-
-def get_db_conn(config):
-	db = MySQLdb.connect(
-		host=config['host'], 
-		user=config['user'], 
-		passwd=config['password'], 
-		db=config['database'])
-	return db, db.cursor()
 
 def insert(rows, table, cursor):
 	columns = ', '.join(map(lambda x: '`%s`' % x, rows[0].keys()))
@@ -22,8 +10,8 @@ def insert(rows, table, cursor):
 		values = ', '.join(map(lambda x: x if x == 'NULL' else "'%s'" % x, row.values()))
 		cursor.execute('INSERT INTO %s(%s) VALUES(%s)' % (table, columns, values))	
 
-def seed_db(db_config):
-	db, cursor = get_db_conn(db_config)
+def seed_db():
+	db, cursor = util.get_db_conn()
 
 	with open('create_tables.sql', 'r') as queryfile:
 		queries=queryfile.read().split(';')
@@ -38,26 +26,22 @@ def seed_db(db_config):
 	db.commit()
 	cursor.close()
 
-def fetch_messages(db_config):
+def fetch_messages(tw_client):
 	twilio_date_fmt = '%Y-%m-%d'
-	db, cursor = get_db_conn(db_config)
-	cursor.execute('SELECT MAX(processed_on) FROM message')
-	time_of_last_processed_msg = cursor.fetchall()[0][0]
+	db, cursor = util.get_db_conn()
+	cursor.execute('SELECT MAX(processed_on) as processed_on FROM message')
+	time_of_last_processed_msg = cursor.fetchall()[0]['processed_on']
 
 	date_sent = time_of_last_processed_msg.strftime(twilio_date_fmt) if time_of_last_processed_msg != None else None
-	latest_msgs = client.messages.list(DateSent=date_sent)
+	latest_msgs = tw_client.messages.list(DateSent=date_sent)
 
-	msgs_for_db = [{'from': msg.from_, 'to': msg.to, 'body':msg.body, 'direction': msg.direction, 'sent_on': msg.date_sent} for msg in latest_msgs]
+	msgs_for_db = [{'from': msg.from_, 'to': msg.to, 'body': msg.body, 'direction': msg.direction, 'sent_on': msg.date_sent} for msg in latest_msgs]
 	insert(msgs_for_db, 'message', cursor)
 
 	db.commit()
 	cursor.close()
 	return latest_msgs
 
-config = yaml.load(open('credentials.yaml', 'r'))
-db_config = config['db']
-client = get_twilio_client(config['twilio'])
-
 def main():
-	seed_db(db_config)
-	fetch_messages(db_config)
+	seed_db()
+	fetch_messages(util.get_twilio_client())
