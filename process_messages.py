@@ -5,7 +5,7 @@ import yaml
 def is_high_risk(messsage):
 	return len(set(messsage.split(' ')).intersection(['Help', 'help', 'h', 'H'])) == True
 
-def process_new_client_msgs(tw_client):
+def process_client_msgs(tw_client):
 	db, cur = util.get_db_conn()
 	cur.execute("""
 		SELECT `id`, `from`, `body`
