@@ -14,7 +14,7 @@ def process_partner_msgs(tw_client):
 		FROM message INNER JOIN user on message.from = user.phone_number
 		WHERE response_threshold_hit_on is NULL
 		AND client_message_id is not NULL
-		AND directon = 'inbound'
+		AND direction = 'inbound'
 		AND user.type = 'partner'
 		GROUP BY client_message_id
 		""")
@@ -28,7 +28,7 @@ def process_partner_msgs(tw_client):
 				SELECT distinct user.*
 				FROM message INNER JOIN user on message.from = user.phone_number
 				WHERE client_message_id = %s
-				AND directon = 'inbound'
+				AND direction = 'inbound'
 				AND user.type = 'partner'
 				""", (client_msg_id,))
 			respondents = [row['phone_number'] for row in cur.fetchall()]
