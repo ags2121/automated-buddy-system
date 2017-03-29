@@ -1,10 +1,15 @@
 import util
 import csv
+from datetime import datetime, timedelta
+from itertools import chain
 
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
 def insert(rows, table, cursor):
+	if len(rows) == 0:
+		return
+
 	columns = ', '.join(map(lambda x: '`%s`' % x, rows[0].keys()))
 	for row in rows:
 		values = ', '.join(map(lambda x: x if x == 'NULL' else "'%s'" % x, row.values()))
@@ -26,14 +31,26 @@ def create_db():
 	db.commit()
 	cursor.close()
 
+def get_missing_dates(time_of_last_sent_msg):
+	twilio_date_fmt = '%Y-%m-%d'
+	delta = datetime.today() - time_of_last_sent_msg
+	return [(time_of_last_sent_msg + timedelta(days=i)).strftime(twilio_date_fmt) for i in range(delta.days + 2)]
+
 def write_messages_to_db(tw_client):
 	twilio_date_fmt = '%Y-%m-%d'
 	db, cursor = util.get_db_conn()
-	cursor.execute('SELECT MAX(forwarded_on) as forwarded_on FROM message')
-	time_of_last_processed_msg = cursor.fetchall()[0]['forwarded_on']
+	cursor.execute('SELECT MAX(sent_on) as sent_on FROM message')
+	time_of_last_sent_msg = cursor.fetchall()[0]['sent_on']
 
-	date_sent = time_of_last_processed_msg.strftime(twilio_date_fmt) if time_of_last_processed_msg != None else None
-	latest_msgs = tw_client.messages.list(DateSent=date_sent)
+	# get days for which we have no msgs (None if we've never synced msgs before)
+	dates = get_missing_dates(time_of_last_sent_msg) if time_of_last_sent_msg != None else [None]
+
+	# fetch msgs and flatten responses into list
+	latest_msgs = chain.from_iterable([tw_client.messages.list(date_sent=date_sent) for date_sent in dates])
+
+	# filter msgs by time_of_last_sent_msg and sort msgs ascending by date sent
+	epoch_start = datetime(1970, 1, 1, 1)
+	latest_msgs = sorted([msg for msg in latest_msgs if (time_of_last_sent_msg or epoch_start) < msg.date_sent], key=lambda m: m.date_sent)
 
 	msgs_for_db = []
 	for msg in latest_msgs:
@@ -56,5 +73,5 @@ def write_messages_to_db(tw_client):
 	return latest_msgs
 
 def main():
-	create_db()
-	write_messages_to_db(util.get_twilio_client())
+	#create_db()
+	return write_messages_to_db(util.get_twilio_client())
