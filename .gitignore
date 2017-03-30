@@ -3,3 +3,4 @@ venv
 credentials.yaml
 *.pyc
 user.csv
+*.log

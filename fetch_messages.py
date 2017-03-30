@@ -2,9 +2,15 @@ import util
 import csv
 from datetime import datetime, timedelta
 from itertools import chain
+import daemon
+import logging
+import time
+import os
 
-import pprint
-pp = pprint.PrettyPrinter(indent=4)
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+fh = logging.FileHandler("./fetch_messages.log")
+logger.addHandler(fh)
 
 def insert(rows, table, cursor):
 	if len(rows) == 0:
@@ -23,10 +29,16 @@ def create_db():
 
 	[cursor.execute(query) for query in queries if query != '\n']
 
-	users = [row for row in csv.DictReader(open('user.csv'))]
-	#messages = [row for row in csv.DictReader(open('message.csv'))]
+	db.commit()
+	cursor.close()
 
+def add_users_to_db():
+	db, cursor = util.get_db_conn()
+
+	users = [row for row in csv.DictReader(open('user.csv'))]
 	insert(users, 'user', cursor)
+
+	#messages = [row for row in csv.DictReader(open('message.csv'))]
 	#insert(messages, 'message', cursor)
 	db.commit()
 	cursor.close()
@@ -72,6 +84,14 @@ def write_messages_to_db(tw_client):
 	cursor.close()
 	return latest_msgs
 
-def main():
-	#create_db()
+def seed_db():
+	create_db()
+	add_users_to_db()
 	return write_messages_to_db(util.get_twilio_client())
+
+if __name__ == '__main__':
+	os.system("pkill -xf 'python fetch_messages.py' || true")
+	with daemon.DaemonContext(files_preserve = [fh.stream]):
+		while True:
+			write_messages_to_db(util.get_twilio_client())
+			time.sleep(2)

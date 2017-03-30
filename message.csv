@@ -1,4 +1,4 @@
-from,to,body,sent_on,forwarded_on,direction
+from,to,body,sent_on,processed_on,direction
 xxxxxxxxx1,xxxxxxxxx1,OMW,2017-03-19 03:14:07,NULL,
 xxxxxxxxx2,xxxxxxxxx2,OMW,2017-03-19 03:14:07,NULL,
 xxxxxxxxx3,xxxxxxxxx3,noShow,2017-03-19 03:14:07,NULL,

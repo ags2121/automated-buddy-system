@@ -5,7 +5,7 @@ CREATE TABLE `message` (
   `to` varchar(15) NOT NULL,
   `body` varchar(1600) NOT NULL,
   `sent_on` timestamp NULL DEFAULT NULL,
-  `forwarded_on` timestamp NULL DEFAULT NULL,
+  `processed_on` timestamp NULL DEFAULT NULL,
   `direction` varchar(15) DEFAULT NULL,
   `response_threshold_hit_on` timestamp NULL DEFAULT NULL,
   `client_message_id` int(11) DEFAULT NULL,
