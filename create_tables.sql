@@ -19,6 +19,11 @@ CREATE TABLE `user` (
   `type` varchar(10) NOT NULL,
   PRIMARY KEY (`phone_number`)
 );
+INSERT INTO `user` (`uuid`, `phone_number`, `type`)
+VALUES
+  ('nsC1','xxxxxxxxx1','client'),
+  ('nsP1','+xxxxxxxxx2','partner'),
+  ('nsP2','+xxxxxxxxx3','partner');
 
 DROP TABLE IF EXISTS `location_user_association`;
 CREATE TABLE `location_user_association` (
@@ -27,15 +32,8 @@ CREATE TABLE `location_user_association` (
   `uuid` varchar(5) DEFAULT NULL,
   PRIMARY KEY (`id`)
 );
-
 INSERT INTO `location_user_association` (`id`, `location_id`, `uuid`)
 VALUES
   (1,'A','nsP1'),
   (2,'A','nsP2'),
   (3,'A','nsC1');
-
-INSERT INTO `user` (`uuid`, `phone_number`, `type`)
-VALUES
-  ('nsC1','xxxxxxxxx1','client'),
-  ('nsP1','+xxxxxxxxx2','partner'),
-  ('nsP2','+xxxxxxxxx3','partner');

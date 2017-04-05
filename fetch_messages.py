@@ -32,17 +32,6 @@ def create_db():
 	db.commit()
 	cursor.close()
 
-def add_users_to_db():
-	db, cursor = util.get_db_conn()
-
-	users = [row for row in csv.DictReader(open('user.csv'))]
-	insert(users, 'user', cursor)
-
-	#messages = [row for row in csv.DictReader(open('message.csv'))]
-	#insert(messages, 'message', cursor)
-	db.commit()
-	cursor.close()
-
 def get_missing_dates(time_of_last_sent_msg):
 	twilio_date_fmt = '%Y-%m-%d'
 	delta = datetime.today() - time_of_last_sent_msg
@@ -78,7 +67,6 @@ def write_messages_to_db(tw_client):
 
 def seed_db():
 	create_db()
-	#add_users_to_db()
 	write_messages_to_db(util.get_twilio_client())
 	db, cursor = util.get_db_conn()
 	cursor.execute("""
