@@ -1,4 +1,4 @@
-import util
+	import util
 import daemon
 import logging
 import os
@@ -42,7 +42,6 @@ def process_client_msgs(tw_client):
 			continue
 
 		partner_numbers = util.get_partner_numbers(cur, partner_uuids)
-		msg_template = 'MSG ID: {0} - MSG BODY: {1} (include MSG ID "{0}" in your response)'
 		msg_template = '"{0}". Respond with "{1} omw" or "{1} noshow".'
 		forwarded_high_risk_msgs[m['id']] = [util.send_sms(tw_client, number, msg_template.format(m['body'], m['id'])) for number in partner_numbers]
 
