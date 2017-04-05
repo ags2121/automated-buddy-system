@@ -10,52 +10,47 @@ fh = logging.FileHandler("./process_partner_messages.log")
 logger.addHandler(fh)
 
 def process_partner_msgs(tw_client):
-	positive_response_threshold = 1
+	positive_response_threshold = 2
 	db, cur = util.get_db_conn()
 
-	cur.execute("""
-		SELECT client_message_id, count(distinct user.uuid) as positive_responses
-		FROM message INNER JOIN user on message.from = user.phone_number
-		WHERE response_threshold_hit_on is NULL
-		AND client_message_id is not NULL
-		AND direction = 'inbound'
-		AND user.type = 'partner'
-		AND (body LIKE '%omw%' or body LIKE '%On My Way!%')
-		GROUP BY client_message_id
-		""")
+	with open('fetch_positive_responses.sql', 'r') as queryfile:
+		query=queryfile.read()
+
+	cur.execute(query)
 	results = cur.fetchall()
 	logger.debug(positive_response_threshold)
 	logger.debug(results)
 
 	for res in results:
-		positive_responses, client_msg_id = res['positive_responses'], res['client_message_id']
-		if positive_responses >= positive_response_threshold:
+		partner_uuids_with_pos_response = res['partner_uuids_with_pos_response'].split(',')
+
+		if len(partner_uuids_with_pos_response) >= positive_response_threshold:
+
+			client_uuid, client_location_id = res['client_uuid'], res['location_id']
+			first_msg_sent, last_msg_sent = res['first_msg_sent'], res['last_msg_sent']
+
+			ids = ', '.join(map(lambda x: '%s', partner_uuids_with_pos_response))
 
 			cur.execute("""
-				SELECT distinct user.*
-				FROM message INNER JOIN user on message.from = user.phone_number
-				WHERE client_message_id = %s
-				AND direction = 'inbound'
+				SELECT phone_number
+				FROM user
+				LEFT JOIN location_user_association lua on lua.uuid = user.uuid
+				WHERE lua.location_id = '%(client_location_id)s'
 				AND user.type = 'partner'
-				""", (client_msg_id,))
-			respondent_numbers = [row['phone_number'] for row in cur.fetchall()]
+				AND user.uuid not in (%(ids)s)
+				""" % {'client_location_id': client_location_id, 'ids': ids}, [p for p in partner_uuids_with_pos_response])
 
-			if cur.execute("""
-				SELECT uuid
-				FROM user INNER JOIN message on message.from = user.phone_number
-				WHERE message.id = %s;
-				""", (client_msg_id,)) == 0:
-				logger.warn('Message id %s was not a client message. This may indicate a bug in the program.' % client_msg_id)
-				continue
+			non_pos_respondent_numbers = [row['phone_number'] for row in cur.fetchall()]
 
-			client_uuid = cur.fetchall()[0]['uuid']
-			recipients_numbers = util.get_partner_numbers(cur, util.get_partners_for_location(util.get_client_location(client_uuid)))
+			for num in non_pos_respondent_numbers:
+				util.send_sms(tw_client, num, 'Client %s has received enough positive responses.' % client_uuid)
 
-			for recipient_number in recipients_numbers:
-				if recipient_number not in respondent_numbers:
-					util.send_sms(tw_client, recipient_number, 'do not show up for MSG ID: %s' % res['client_message_id'])
-
-			cur.execute('UPDATE message SET response_threshold_hit_on = NOW() WHERE id = %s', (client_msg_id,))
+			cur.execute("""
+				UPDATE message 
+				SET response_threshold_hit_on = NOW() 
+				WHERE sent_on 
+				BETWEEN %s AND %s
+				""", (first_msg_sent, last_msg_sent,))
 
 	db.commit()
 	cur.close()

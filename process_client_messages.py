@@ -1,4 +1,4 @@
-	import util
+import util
 import daemon
 import logging
 import os
@@ -7,49 +7,34 @@ import time
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 fh = logging.FileHandler("./process_client_messages.log")
-logger.addHandler(fh)
-
-def is_high_risk(messsage):
-	return len(set(messsage.split(' ')).intersection(['Help', 'help', 'h', 'H'])) == True	
+logger.addHandler(fh)	
 
 def process_client_msgs(tw_client):
 	db, cur = util.get_db_conn()
-	cur.execute("""
-		SELECT `id`, `from`, `body`, user.`uuid`, user.`type`
-		FROM message INNER JOIN user on message.from = user.phone_number
-		WHERE processed_on is NULL
-		AND direction = 'inbound'
-		AND user.type = 'client'
-		ORDER BY sent_on
-		""")
+
+	with open('fetch_client_messages.sql', 'r') as queryfile:
+		query=queryfile.read()
+
+	cur.execute(query)
 	new_msgs = cur.fetchall()
 
 	forwarded_high_risk_msgs = {}
 	for m in new_msgs:
-		uuid, type_ = m['uuid'], m['type']
+		client_uuid = m['client_uuid']
 
-		if not is_high_risk(m['body']):
+		if not m['is_high_risk']:
 			continue
 
-		location = util.get_client_location(uuid)
-		if location == None:
-			logger.warn('Client %s is not associated with a location' % uuid)
-			continue
+		# TODO: truncate client message body to fit into max body char limit
+		msg_template = 'Client {1} says: "{0}". Respond with "{1} omw" or "{1} noshow".'
+		partner_numbers = m['partner_numbers'].split(',')
+		forwarded_high_risk_msgs[m['id']] = [util.send_sms(tw_client, number, msg_template.format(m['body'], client_uuid)) for number in partner_numbers]
 
-		partner_uuids = util.get_partners_for_location(location)
-		if partner_uuids == None:
-			logger.warn('No partners are associated with location %s' % location)
-			continue
-
-		partner_numbers = util.get_partner_numbers(cur, partner_uuids)
-		msg_template = '"{0}". Respond with "{1} omw" or "{1} noshow".'
-		forwarded_high_risk_msgs[m['id']] = [util.send_sms(tw_client, number, msg_template.format(m['body'], m['id'])) for number in partner_numbers]
-
-	# TODO: check response codes on forwarded_high_risk_msgs
-	# if there are errors, don't mark new messages as processed
-	# logger.warn(forwarded_high_risk_msgs)
 	if len(new_msgs) == 0:
 		return
+
+	# TODO: check response codes on forwarded_high_risk_msgs
+	# if there are errors, don't mark new messages as processed		
 
 	ids = ', '.join(map(lambda x: '%s', new_msgs))
 	cur.execute("""
@@ -57,6 +42,7 @@ def process_client_msgs(tw_client):
 		SET processed_on = NOW()
 		WHERE id in (%s)
 		""" % ids, [m['id'] for m in new_msgs])
+
 	db.commit()
 	cur.close()
 

@@ -48,6 +48,7 @@ def get_missing_dates(time_of_last_sent_msg):
 	delta = datetime.today() - time_of_last_sent_msg
 	return [(time_of_last_sent_msg + timedelta(days=i)).strftime(twilio_date_fmt) for i in range(delta.days + 2)]
 
+# TODO: write to in-memory only DB?
 def write_messages_to_db(tw_client):
 	twilio_date_fmt = '%Y-%m-%d'
 	db, cursor = util.get_db_conn()
@@ -66,16 +67,7 @@ def write_messages_to_db(tw_client):
 
 	msgs_for_db = []
 	for msg in latest_msgs:
-
-		# if msg is from partner phone number, unpack the client id referred to in the message body
-		client_msg_id = 'NULL'
-		get_partner_phone_sql = "SELECT phone_number FROM user WHERE phone_number = %s AND type = 'partner'"
-		if msg.direction == 'inbound' and cursor.execute(get_partner_phone_sql, (msg.from_,)):
-			first_token = msg.body.split(' ')[0]
-			if first_token.isnumeric():
-				client_msg_id = first_token
-
-		msg_for_db = {'from': msg.from_, 'to': msg.to, 'body': msg.body, 'direction': msg.direction, 'sent_on': msg.date_sent, 'client_message_id': client_msg_id}
+		msg_for_db = {'from': msg.from_, 'to': msg.to, 'body': msg.body, 'direction': msg.direction, 'sent_on': msg.date_sent}
 		msgs_for_db.append(msg_for_db)
 
 	insert(msgs_for_db, 'message', cursor)
@@ -86,7 +78,7 @@ def write_messages_to_db(tw_client):
 
 def seed_db():
 	create_db()
-	add_users_to_db()
+	#add_users_to_db()
 	write_messages_to_db(util.get_twilio_client())
 	db, cursor = util.get_db_conn()
 	cursor.execute("""
