@@ -87,7 +87,15 @@ def write_messages_to_db(tw_client):
 def seed_db():
 	create_db()
 	add_users_to_db()
-	return write_messages_to_db(util.get_twilio_client())
+	write_messages_to_db(util.get_twilio_client())
+	db, cursor = util.get_db_conn()
+	cursor.execute("""
+		UPDATE message
+		SET processed_on = now(), response_threshold_hit_on = now()
+		""")
+	db.commit()
+	cursor.close()	
+
 
 if __name__ == '__main__':
 	os.system("pkill -xf 'python fetch_messages.py' || true")
