@@ -1,5 +1,4 @@
 import util
-import daemon
 import logging
 import os
 import time
@@ -7,7 +6,7 @@ import time
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 fh = logging.FileHandler("./process_client_messages.log")
-logger.addHandler(fh)	
+logger.addHandler(fh)
 
 def process_client_msgs(tw_client):
 	db, cur = util.get_db_conn()
@@ -48,7 +47,6 @@ def process_client_msgs(tw_client):
 
 if __name__ == '__main__':	
 	os.system("pkill -xf 'python process_client_messages.py' || true")
-	with daemon.DaemonContext(files_preserve = [fh.stream]):
-		while True:
-			process_client_msgs(util.get_twilio_client())
-			time.sleep(2)		
+	while True:
+		process_client_msgs(util.get_twilio_client())
+		time.sleep(2)

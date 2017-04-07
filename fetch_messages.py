@@ -2,7 +2,6 @@ import util
 import csv
 from datetime import datetime, timedelta
 from itertools import chain
-import daemon
 import logging
 import time
 import os
@@ -74,12 +73,10 @@ def seed_db():
 		SET processed_on = now(), response_threshold_hit_on = now()
 		""")
 	db.commit()
-	cursor.close()	
-
+	cursor.close()
 
 if __name__ == '__main__':
 	os.system("pkill -xf 'python fetch_messages.py' || true")
-	with daemon.DaemonContext(files_preserve = [fh.stream]):
-		while True:
-			write_messages_to_db(util.get_twilio_client())
-			time.sleep(2)
+	while True:
+		write_messages_to_db(util.get_twilio_client())
+		time.sleep(2)

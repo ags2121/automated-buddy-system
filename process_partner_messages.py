@@ -1,5 +1,4 @@
 import util
-import daemon
 import logging
 import os
 import time
@@ -57,7 +56,6 @@ def process_partner_msgs(tw_client):
 
 if __name__ == '__main__':	
 	os.system("pkill -xf 'python process_partner_messages.py' || true")
-	with daemon.DaemonContext(files_preserve = [fh.stream]):
-		while True:
-			process_partner_msgs(util.get_twilio_client())
-			time.sleep(2)
+	while True:
+		process_partner_msgs(util.get_twilio_client())
+		time.sleep(2)
