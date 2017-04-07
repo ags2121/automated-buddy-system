@@ -45,8 +45,11 @@ def process_client_msgs(tw_client):
 	db.commit()
 	cur.close()
 
-if __name__ == '__main__':	
+def kill_process():
 	os.system("pkill -xf 'python process_client_messages.py' || true")
+
+if __name__ == '__main__':	
+	kill_process()
 	while True:
 		process_client_msgs(util.get_twilio_client())
 		time.sleep(2)

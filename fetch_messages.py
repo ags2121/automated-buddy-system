@@ -75,8 +75,11 @@ def seed_db():
 	db.commit()
 	cursor.close()
 
-if __name__ == '__main__':
+def kill_process():
 	os.system("pkill -xf 'python fetch_messages.py' || true")
+
+if __name__ == '__main__':
+	kill_process()
 	while True:
 		write_messages_to_db(util.get_twilio_client())
 		time.sleep(2)
