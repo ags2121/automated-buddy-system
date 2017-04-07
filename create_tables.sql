@@ -8,7 +8,6 @@ CREATE TABLE `message` (
   `processed_on` timestamp NULL DEFAULT NULL,
   `direction` varchar(15) DEFAULT NULL,
   `response_threshold_hit_on` timestamp NULL DEFAULT NULL,
-  `client_message_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 );
 
