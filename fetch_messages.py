@@ -2,7 +2,6 @@ import util
 import csv
 from datetime import datetime, timedelta
 from itertools import chain
-import daemon
 import logging
 import time
 import os
@@ -32,22 +31,12 @@ def create_db():
 	db.commit()
 	cursor.close()
 
-def add_users_to_db():
-	db, cursor = util.get_db_conn()
-
-	users = [row for row in csv.DictReader(open('user.csv'))]
-	insert(users, 'user', cursor)
-
-	#messages = [row for row in csv.DictReader(open('message.csv'))]
-	#insert(messages, 'message', cursor)
-	db.commit()
-	cursor.close()
-
 def get_missing_dates(time_of_last_sent_msg):
 	twilio_date_fmt = '%Y-%m-%d'
 	delta = datetime.today() - time_of_last_sent_msg
 	return [(time_of_last_sent_msg + timedelta(days=i)).strftime(twilio_date_fmt) for i in range(delta.days + 2)]
 
+# TODO: write to in-memory only DB?
 def write_messages_to_db(tw_client):
 	twilio_date_fmt = '%Y-%m-%d'
 	db, cursor = util.get_db_conn()
@@ -66,16 +55,7 @@ def write_messages_to_db(tw_client):
 
 	msgs_for_db = []
 	for msg in latest_msgs:
-
-		# if msg is from partner phone number, unpack the client id referred to in the message body
-		client_msg_id = 'NULL'
-		get_partner_phone_sql = "SELECT phone_number FROM user WHERE phone_number = %s AND type = 'partner'"
-		if msg.direction == 'inbound' and cursor.execute(get_partner_phone_sql, (msg.from_,)):
-			first_token = msg.body.split(' ')[0]
-			if first_token.isnumeric():
-				client_msg_id = first_token
-
-		msg_for_db = {'from': msg.from_, 'to': msg.to, 'body': msg.body, 'direction': msg.direction, 'sent_on': msg.date_sent, 'client_message_id': client_msg_id}
+		msg_for_db = {'from': msg.from_, 'to': msg.to, 'body': msg.body, 'direction': msg.direction, 'sent_on': msg.date_sent}
 		msgs_for_db.append(msg_for_db)
 
 	insert(msgs_for_db, 'message', cursor)
@@ -86,7 +66,6 @@ def write_messages_to_db(tw_client):
 
 def seed_db():
 	create_db()
-	add_users_to_db()
 	write_messages_to_db(util.get_twilio_client())
 	db, cursor = util.get_db_conn()
 	cursor.execute("""
@@ -94,12 +73,13 @@ def seed_db():
 		SET processed_on = now(), response_threshold_hit_on = now()
 		""")
 	db.commit()
-	cursor.close()	
+	cursor.close()
 
+def kill_process():
+	os.system("pkill -xf 'python fetch_messages.py' || true")
 
 if __name__ == '__main__':
-	os.system("pkill -xf 'python fetch_messages.py' || true")
-	with daemon.DaemonContext(files_preserve = [fh.stream]):
-		while True:
-			write_messages_to_db(util.get_twilio_client())
-			time.sleep(2)
+	kill_process()
+	while True:
+		write_messages_to_db(util.get_twilio_client())
+		time.sleep(2)

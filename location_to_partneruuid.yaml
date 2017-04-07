@@ -1,7 +1,0 @@
-A: [nsP1,nsP2,nsP3,nsP4,nsP5,nsP6,nsP7,nsP8,nsP9,nsP10]
-B: [nsP2,nsP1,nsP4,nsP3,nsP5,nsP6,nsP7,nsP8,nsP9,nsP10]
-C: [nsP3,nsP4,nsP5,nsP2,nsP1,nsP6,nsP7,nsP8,nsP9,nsP10]
-D: [nsP8,nsP10,nsP4,nsP4,nsP3,nsP6,nsP7,nsP2,nsP9,nsP1]
-E: [nsP5,nsP6,nsP7,nsP4,nsP3,nsP1,nsP2,nsP8,nsP9,nsP10]
-F: [nsP6,nsP9,nsP8,nsP4,nsP5,nsP1,nsP7,nsP2,nsP3,nsP10]
-G: [nsP7,nsP5,nsP9,nsP4,nsP3,nsP6,nsP1,nsP8,nsP2,nsP10]
